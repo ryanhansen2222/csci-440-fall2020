@@ -92,5 +92,13 @@ WHERE NOT AlbumId = 1 AND Milliseconds > 3 * 60 * 1000;
 
 select Name from tracks where Composer IS NULL;
 
+SELECT *
+FROM playlist_track;
 
-
+SELECT playlists.Name, tracks.Name
+FROM playlists
+join playlist_track on
+playlists.PlaylistId=playlist_track.PlaylistId
+join tracks ON playlist_track.TrackId=tracks.TrackId
+WHERE playlists.PlaylistId=3
+ORDER BY tracks.Name;
