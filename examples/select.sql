@@ -24,12 +24,21 @@ FROM albums
 WHERE   AlbumId = 1;
 
 SELECT *
+FROM artists
+where art
+
+SELECT *
 FROM invoices
 LIMIT 10
 OFFSET 0;
 
 SELECT *
+FROM playlists
+where playlists.
+
+SELECT *
 FROM employees
+WHERE employees.
 LIMIT 10
 OFFSET 0;
 
