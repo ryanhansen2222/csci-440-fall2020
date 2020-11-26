@@ -16,12 +16,18 @@ public class Employee extends Model {
     private String lastName;
     private String email;
     private String title;
+    private Employee boss;
 
+    /*
     public Employee() {
         // new employee for insert
+    }*/
+
+    public Employee(){
+
     }
 
-    private Employee(ResultSet results) throws SQLException {
+    public Employee(ResultSet results) throws SQLException {
         firstName = results.getString("FirstName");
         lastName = results.getString("LastName");
         email = results.getString("Email");
@@ -38,7 +44,7 @@ public class Employee extends Model {
                              " FROM invoices" +
                              " join customers on customers.CustomerId = invoices.CustomerId " +
                              "join employees on employees.EmployeeID = customers.SupportRepId " +
-                             "GROUP BY employees.EmployeeId ORDER BY SalesCount"
+                             "GROUP BY employees.EmployeeId ORDER BY SalesCount DESC"
              )) {
             //stmt.setInt(1, count);
             //stmt.setInt(1, (page-1)*10);
@@ -63,8 +69,8 @@ public class Employee extends Model {
         if (lastName == null || "".equals(lastName)) {
             addError("LastName can't be null!");
         }
-        if (email == null || "".equals(email)) {
-            addError("EMAIL can't be null!");
+        if (email == null || !email.contains("@")) {
+            addError("EMAIL must be valid!");
         }
 
         return !hasErrors();
@@ -175,9 +181,9 @@ public class Employee extends Model {
     }
     public Employee getBoss() {
         //TODO implement
-        long bossid = this.getReportsTo();
+        //long bossid = this.getReportsTo();
 
-        return this.find(bossid);
+        return this.boss;
     }
 
     public static List<Employee> all() {
@@ -247,6 +253,7 @@ public class Employee extends Model {
             //stmt.setInt(1, (page-1)*10);
             ResultSet results = stmt.executeQuery();
             reportsTo = results.getLong(1);
+            boss = employee;
         } catch (SQLException sqlException) {
             throw new RuntimeException(sqlException);
         }
