@@ -35,10 +35,10 @@ public class Employee extends Model {
         try (Connection conn = DB.connect();
              PreparedStatement stmt = conn.prepareStatement(
                      "SELECT employees.EmployeeID, employees.FirstName, employees.LastName, employees.Email, sum(invoices.Total) as SalesTotal, count(invoices.InvoiceId) as SalesCount" +
-                             "FROM invoices\n" +
-                             "join customers on customers.CustomerId = invoices.CustomerId\n" +
-                             "join employees on employees.EmployeeID = customers.SupportRepId\n" +
-                             "GROUP BY employees.EmployeeId"
+                             " FROM invoices" +
+                             " join customers on customers.CustomerId = invoices.CustomerId " +
+                             "join employees on employees.EmployeeID = customers.SupportRepId " +
+                             "GROUP BY employees.EmployeeId ORDER BY SalesCount"
              )) {
             //stmt.setInt(1, count);
             //stmt.setInt(1, (page-1)*10);
@@ -63,6 +63,10 @@ public class Employee extends Model {
         if (lastName == null || "".equals(lastName)) {
             addError("LastName can't be null!");
         }
+        if (email == null || "".equals(email)) {
+            addError("EMAIL can't be null!");
+        }
+
         return !hasErrors();
     }
 
@@ -71,7 +75,7 @@ public class Employee extends Model {
         if (verify()) {
             try (Connection conn = DB.connect();
                  PreparedStatement stmt = conn.prepareStatement(
-                         "UPDATE employees SET FirstName=?, LastName=?, Email=? WHERE EmployeeId=?")) {
+                         "UPDATE employees SET FirstName=?, LastName=?, employees.Email=? WHERE EmployeeId=?")) {
                 stmt.setString(1, this.getFirstName());
                 stmt.setString(2, this.getLastName());
                 stmt.setString(3, this.getEmail());
@@ -171,7 +175,19 @@ public class Employee extends Model {
     }
     public Employee getBoss() {
         //TODO implement
-        return null;
+        //this.setReportsTo();
+        try (Connection conn = DB.connect();
+             PreparedStatement stmt = conn.prepareStatement(
+                     "SELECT * FROM employees WHERE employees.EmployeeID=?"
+             )) {
+            stmt.setLong(1, reportsTo);
+            ResultSet results = stmt.executeQuery();
+            Employee boss = new Employee(results);
+
+            return boss;
+        } catch (SQLException sqlException) {
+            throw new RuntimeException(sqlException);
+        }
     }
 
     public static List<Employee> all() {
@@ -181,9 +197,10 @@ public class Employee extends Model {
     public static List<Employee> all(int page, int count) {
         try (Connection conn = DB.connect();
              PreparedStatement stmt = conn.prepareStatement(
-                     "SELECT * FROM employees LIMIT ?"
+                     "SELECT * FROM employees LIMIT ? OFFSET ?"
              )) {
             stmt.setInt(1, count);
+            stmt.setInt(2, (page-1)*count);
             ResultSet results = stmt.executeQuery();
             List<Employee> resultList = new LinkedList<>();
             while (results.next()) {

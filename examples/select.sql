@@ -37,15 +37,16 @@ SELECT *
 FROM customers
 LIMIT 10;
 
-SELECT sum(invoices.Total), employees."FirstName", employees."LastName"
+SELECT sum(invoices.Total), employees."FirstName", employees."LastName", inv
 FROM invoices
 join customers on customers.CustomerId = invoices.CustomerId
 join employees on employees.EmployeeID = customers.SupportRepId
 GROUP BY employees.EmployeeId;
 
-SELECT employees."ReportsTo"
-FROM employees
-WHERE "EmployeeId"=4;
+SELECT employees.EmployeeID, employees.FirstName, employees.LastName, employees.Email, sum(invoices.Total) as SalesTotal, count(invoices.InvoiceId) as SalesCount FROM invoices
+                             join customers on customers.CustomerId = invoices.CustomerId
+                             join employees on employees.EmployeeID = customers.SupportRepId
+                             GROUP BY employees.EmployeeId;
 
 SELECT name, Milliseconds, AlbumId
 FROM tracks
