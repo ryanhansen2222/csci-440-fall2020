@@ -51,9 +51,10 @@ public class Artist extends Model {
     public static List<Artist> all(int page, int count) {
         try (Connection conn = DB.connect();
              PreparedStatement stmt = conn.prepareStatement(
-                     "SELECT * FROM artists LIMIT ?"
+                     "SELECT * FROM artists LIMIT 10 OFFSET ?"
              )) {
-            stmt.setInt(1, count);
+            //stmt.setInt(1, count);
+            stmt.setInt(1, (page-1)*10);
             ResultSet results = stmt.executeQuery();
             List<Artist> resultList = new LinkedList<>();
             while (results.next()) {
@@ -78,6 +79,16 @@ public class Artist extends Model {
         } catch (SQLException sqlException) {
             throw new RuntimeException(sqlException);
         }
+    }
+
+    @Override
+    public boolean verify() {
+        _errors.clear(); // clear any existing errors
+        if (name == null || "".equals(name)) {
+            addError("Name can't be null or blank!");
+        }
+
+        return !hasErrors();
     }
 
 }

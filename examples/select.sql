@@ -23,6 +23,30 @@ SELECT Title
 FROM albums
 WHERE   AlbumId = 1;
 
+SELECT *
+FROM invoices
+LIMIT 10
+OFFSET 0;
+
+SELECT *
+FROM employees
+LIMIT 10
+OFFSET 0;
+
+SELECT *
+FROM customers
+LIMIT 10;
+
+SELECT sum(invoices.Total), employees."FirstName", employees."LastName"
+FROM invoices
+join customers on customers.CustomerId = invoices.CustomerId
+join employees on employees.EmployeeID = customers.SupportRepId
+GROUP BY employees.EmployeeId;
+
+SELECT employees."ReportsTo"
+FROM employees
+WHERE "EmployeeId"=4;
+
 SELECT name, Milliseconds, AlbumId
 FROM tracks
 WHERE AlbumId = 1 OR Milliseconds > 3 * 60 * 1000;

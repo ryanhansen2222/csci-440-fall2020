@@ -64,9 +64,10 @@ public class Album extends Model {
     public static List<Album> all(int page, int count) {
         try (Connection conn = DB.connect();
              PreparedStatement stmt = conn.prepareStatement(
-                     "SELECT * FROM albums LIMIT ?"
+                     "SELECT * FROM albums LIMIT 10 OFFSET ?"
              )) {
-            stmt.setInt(1, count);
+            //stmt.setInt(1, count);
+            stmt.setInt(1, (page-1)*10);
             ResultSet results = stmt.executeQuery();
             List<Album> resultList = new LinkedList<>();
             while (results.next()) {

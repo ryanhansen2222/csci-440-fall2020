@@ -32,7 +32,26 @@ public class Employee extends Model {
 
     public static List<Employee.SalesSummary> getSalesSummaries() {
         //TODO - a GROUP BY query to determine the sales (look at the invoices table), using the SalesSummary class
-        return Collections.emptyList();
+        try (Connection conn = DB.connect();
+             PreparedStatement stmt = conn.prepareStatement(
+                     "SELECT employees.EmployeeID, employees.FirstName, employees.LastName, employees.Email, sum(invoices.Total) as SalesTotal, count(invoices.InvoiceId) as SalesCount" +
+                             "FROM invoices\n" +
+                             "join customers on customers.CustomerId = invoices.CustomerId\n" +
+                             "join employees on employees.EmployeeID = customers.SupportRepId\n" +
+                             "GROUP BY employees.EmployeeId"
+             )) {
+            //stmt.setInt(1, count);
+            //stmt.setInt(1, (page-1)*10);
+            ResultSet results = stmt.executeQuery();
+            List<Employee.SalesSummary> resultList = new LinkedList<>();
+            while (results.next()) {
+                resultList.add(new Employee.SalesSummary(results));
+            }
+            return resultList;
+        } catch (SQLException sqlException) {
+            throw new RuntimeException(sqlException);
+        }
+        //return Collections.emptyList();
     }
 
     @Override
@@ -201,6 +220,17 @@ public class Employee extends Model {
 
     public void setReportsTo(Employee employee) {
         // TODO implement
+        try (Connection conn = DB.connect();
+             PreparedStatement stmt = conn.prepareStatement(
+                     "SELECT employees.ReportsTo FROM employees WHERE EmployeeId=?"
+             )) {
+            stmt.setLong(1, employee.employeeId);
+            //stmt.setInt(1, (page-1)*10);
+            ResultSet results = stmt.executeQuery();
+            reportsTo = results.getLong(1);
+        } catch (SQLException sqlException) {
+            throw new RuntimeException(sqlException);
+        }
     }
 
     public static class SalesSummary {
