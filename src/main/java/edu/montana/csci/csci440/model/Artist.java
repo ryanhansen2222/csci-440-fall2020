@@ -96,7 +96,7 @@ public class Artist extends Model {
         if (verify()) {
             try (Connection conn = DB.connect();
                  PreparedStatement stmt = conn.prepareStatement(
-                         "UPDATE artists SET artists.Name=? WHERE ArtistId=?")){
+                         "UPDATE artists SET Name=? WHERE ArtistId=?")){
                 stmt.setString(1, this.getName());
                 stmt.setLong(2, this.getArtistId());
                 stmt.executeUpdate();
@@ -109,6 +109,7 @@ public class Artist extends Model {
         }
     }
 
+    @Override
     public boolean create() {
         if (verify()) {
             try (Connection conn = DB.connect();

@@ -75,7 +75,7 @@ public class Employee extends Model {
         if (verify()) {
             try (Connection conn = DB.connect();
                  PreparedStatement stmt = conn.prepareStatement(
-                         "UPDATE employees SET FirstName=?, LastName=?, employees.Email=? WHERE EmployeeID=?")) {
+                         "UPDATE employees SET FirstName=?, LastName=?, Email=? WHERE EmployeeID=?")) {
                 stmt.setString(1, this.getFirstName());
                 stmt.setString(2, this.getLastName());
                 stmt.setString(3, this.getEmail());
@@ -175,19 +175,9 @@ public class Employee extends Model {
     }
     public Employee getBoss() {
         //TODO implement
-        //this.setReportsTo();
-        try (Connection conn = DB.connect();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "SELECT * FROM employees WHERE employees.EmployeeID=?"
-             )) {
-            stmt.setLong(1, reportsTo);
-            ResultSet results = stmt.executeQuery();
-            Employee boss = new Employee(results);
+        long bossid = this.getReportsTo();
 
-            return boss;
-        } catch (SQLException sqlException) {
-            throw new RuntimeException(sqlException);
-        }
+        return this.find(bossid);
     }
 
     public static List<Employee> all() {
@@ -213,7 +203,19 @@ public class Employee extends Model {
     }
 
     public static Employee findByEmail(String newEmailAddress) {
-        throw new UnsupportedOperationException("Implement me");
+        //throw new UnsupportedOperationException("Implement me");
+        try (Connection conn = DB.connect();
+             PreparedStatement stmt = conn.prepareStatement("SELECT * FROM employees WHERE Email=?")) {
+            stmt.setString(1, newEmailAddress);
+            ResultSet results = stmt.executeQuery();
+            if (results.next()) {
+                return new Employee(results);
+            } else {
+                return null;
+            }
+        } catch (SQLException sqlException) {
+            throw new RuntimeException(sqlException);
+        }
     }
 
     public static Employee find(long employeeId) {

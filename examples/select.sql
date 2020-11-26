@@ -28,9 +28,34 @@ FROM artists
 where art
 
 SELECT *
+FROM employees
+WHERE EmployeeID=1;
+
+UPDATE employees
+SET FirstName="ANDREW", LastName="ADAMS"
+WHERE EmployeeID=1;
+
+select *
+FROM albums
+WHERE albums.
+
+UPDATE artists
+SEt Name = "GEORGE"
+WHERE ArtistId = 1;
+
+INSERT INTO artists
+(Name) VALUES ("GEORGE MAN");
+
+SELECT *
 FROM invoices
 LIMIT 10
 OFFSET 0;
+
+SELECT * From tracks Where tracks
+;
+SELECT *
+FROM employees
+WHERE
 
 SELECT *
 FROM playlists

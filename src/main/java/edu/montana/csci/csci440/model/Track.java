@@ -301,9 +301,7 @@ public class Track extends Model {
         if (milliseconds == null || milliseconds == 0) {
             addError("Track length can't be null or blank!");
         }
-        if (bytes == null || bytes == 0) {
-            addError("Track bytes can't be null or blank!");
-        }
+
 
 
         return !hasErrors();
@@ -326,7 +324,8 @@ public class Track extends Model {
         if (verify()) {
             try (Connection conn = DB.connect();
                  PreparedStatement stmt = conn.prepareStatement(
-                         "UPDATE tracks SET AlbumId=?, MediaTypeId=?, GenreId=?, Name=?, Milliseconds=?, Bytes=?, UnitPrice=? WHERE EmployeeID=?")) {
+                         "UPDATE tracks SET AlbumId=?, MediaTypeId=?, GenreId=?, Name=?, Milliseconds=?, Bytes=?, UnitPrice=? " +
+                                 "WHERE TrackId=?")) {
                 stmt.setLong(1, this.getAlbumId());
                 stmt.setLong(2, this.getMediaTypeId());
                 stmt.setLong(3, this.getGenreId());
@@ -334,6 +333,7 @@ public class Track extends Model {
                 stmt.setLong(5, this.getMilliseconds());
                 stmt.setLong(6, this.getBytes());
                 stmt.setBigDecimal(7, this.getUnitPrice());
+                stmt.setLong(8, this.getTrackId());
                 stmt.executeUpdate();
                 return true;
             } catch (SQLException sqlException) {

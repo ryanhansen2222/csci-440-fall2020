@@ -117,7 +117,7 @@ public class Album extends Model {
         if (verify()) {
             try (Connection conn = DB.connect();
                  PreparedStatement stmt = conn.prepareStatement(
-                         "UPDATE Album SET ArtistId=?, Title=? WHERE AlbumId=?")) {
+                         "UPDATE albums SET ArtistId=?, Title=? WHERE AlbumId=?")) {
                 stmt.setLong(1, this.getArtistId());
                 stmt.setString(2, this.getTitle());
                 stmt.setLong(3, this.getAlbumId());
