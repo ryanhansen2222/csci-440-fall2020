@@ -335,8 +335,7 @@ public class Track extends Model {
                 stmt.setLong(5, this.getMilliseconds());
                 stmt.setLong(6, this.getBytes());
                 stmt.setBigDecimal(7, this.getUnitPrice());
-
-
+                
 
                 stmt.executeUpdate();
                 this.trackId = DB.getLastID(conn);
