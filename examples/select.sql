@@ -102,3 +102,7 @@ playlists.PlaylistId=playlist_track.PlaylistId
 join tracks ON playlist_track.TrackId=tracks.TrackId
 WHERE playlists.PlaylistId=3
 ORDER BY tracks.Name;
+
+SELECT * FROM tracks  ORDER BY "Milliseconds" LIMIT 1 OFFSET 0;
+
+SELECT tracks.*, artists.Name as ArtistName, albums.Title as AlbumName FROM tracks join albums ON albums.AlbumId=tracks.AlbumId join artists ON artists.ArtistId=albums.ArtistId

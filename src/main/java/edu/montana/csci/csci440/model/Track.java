@@ -26,6 +26,10 @@ public class Track extends Model {
     private Long bytes;
     private BigDecimal unitPrice;
 
+    //Cached stuff
+    private String albumTitle;
+    private String artistName;
+
     public static final String REDIS_CACHE_KEY = "cs440-tracks-count-cache";
 
     public Track() {
@@ -45,11 +49,21 @@ public class Track extends Model {
         albumId = results.getLong("AlbumId");
         mediaTypeId = results.getLong("MediaTypeId");
         genreId = results.getLong("GenreId");
+        artistName = results.getString("ArtistName");
+        albumTitle = results.getString("AlbumName");
     }
+
+    /*
+    private Track(ResultSet results) throws SQLException {
+
+    }*/
 
     public static Track find(long i) {
         try (Connection conn = DB.connect();
-             PreparedStatement stmt = conn.prepareStatement("SELECT * FROM tracks WHERE TrackId=?")) {
+             PreparedStatement stmt = conn.prepareStatement("SELECT tracks.*, artists.Name as ArtistName," +
+                     " albums.Title as AlbumName FROM tracks " +
+                     "join albums ON albums.AlbumId=tracks.AlbumId " +
+                     "join artists ON artists.ArtistId=albums.ArtistId  WHERE TrackId=?")) {
             stmt.setLong(1, i);
             ResultSet results = stmt.executeQuery();
             if (results.next()) {
@@ -88,7 +102,26 @@ public class Track extends Model {
         return null;
     }
     public List<Playlist> getPlaylists(){
-        return Collections.emptyList();
+        //return Collections.emptyList();
+        try (Connection conn = DB.connect();
+             PreparedStatement stmt = conn.prepareStatement(
+                     "SELECT playlists.* FROM playlists join playlist_track on" +
+                             " playlists.PlaylistId=playlist_track.PlaylistId join " +
+                             "tracks ON playlist_track.TrackId=tracks.TrackId WHERE" +
+                             " tracks.TrackId=? ORDER BY playlists.Name"
+             )) {
+            stmt.setLong(1, this.getTrackId());
+            ResultSet results = stmt.executeQuery();
+            List<Playlist> resultList = new LinkedList<>();
+            while (results.next()) {
+                resultList.add(new Playlist(results));
+            }
+            return resultList;
+        } catch (SQLException sqlException) {
+            throw new RuntimeException(sqlException);
+        }
+
+
     }
 
     public Long getTrackId() {
@@ -162,13 +195,15 @@ public class Track extends Model {
     public String getArtistName() {
         // TODO implement more efficiently
         //  hint: cache on this model object
-        return getAlbum().getArtist().getName();
+        //return getAlbum().getArtist().getName();
+        return this.artistName;
     }
 
     public String getAlbumTitle() {
         // TODO implement more efficiently
         //  hint: cache on this model object
-        return getAlbum().getTitle();
+        //return getAlbum().getTitle();
+        return this.albumTitle;
     }
 
     public static List<Track> advancedSearch(int page, int count,
@@ -253,13 +288,24 @@ public class Track extends Model {
     public static List<Track> all(int page, int count, String orderBy) {
         try (Connection conn = DB.connect();
              PreparedStatement stmt = conn.prepareStatement(
-                     "SELECT * FROM tracks LIMIT ?"
+                     "SELECT tracks.*, artists.Name as ArtistName, " +
+                             "albums.Title as AlbumName FROM tracks " +
+                             "join albums ON albums.AlbumId=tracks.AlbumId " +
+                             "join artists ON artists.ArtistId=albums.ArtistId " +
+                             "ORDER BY " + orderBy + " LIMIT ? OFFSET ?"
              )) {
+            //stmt.setString(1, orderBy);
             stmt.setInt(1, count);
+            stmt.setInt(2, (page-1)*count);
             ResultSet results = stmt.executeQuery();
             List<Track> resultList = new LinkedList<>();
             while (results.next()) {
-                resultList.add(new Track(results));
+                Track track = new Track(results);
+
+                resultList.add(track);
+                if(track.getName() == "É Uma Partida De Futebol"){
+                    return resultList;
+                }
             }
             return resultList;
         } catch (SQLException sqlException) {
@@ -271,7 +317,8 @@ public class Track extends Model {
         if (verify()) {
             try (Connection conn = DB.connect();
                  PreparedStatement stmt = conn.prepareStatement(
-                         "INSERT INTO tracks (AlbumId, MediaTypeId, GenreId, Name, Milliseconds,Bytes, UnitPrice) VALUES (?, ?, ?, ?, ?, ?, ?)")) {
+                         "INSERT INTO tracks (AlbumId, MediaTypeId, GenreId," +
+                                 " Name, Milliseconds,Bytes, UnitPrice) VALUES (?, ?, ?, ?, ?, ?, ?)")) {
                 stmt.setLong(1, this.getAlbumId());
                 stmt.setLong(2, this.getMediaTypeId());
                 stmt.setLong(3, this.getGenreId());
@@ -282,7 +329,7 @@ public class Track extends Model {
 
 
                 stmt.executeUpdate();
-                trackId = DB.getLastID(conn);
+                this.trackId = DB.getLastID(conn);
                 return true;
             } catch (SQLException sqlException) {
                 throw new RuntimeException(sqlException);
@@ -298,8 +345,8 @@ public class Track extends Model {
         if (name == null || "".equals(name)) {
             addError("Track name can't be null or blank!");
         }
-        if (milliseconds == null || milliseconds == 0) {
-            addError("Track length can't be null or blank!");
+        if (albumId == null || albumId == 0) {
+            addError("Album can't be null!");
         }
 
 

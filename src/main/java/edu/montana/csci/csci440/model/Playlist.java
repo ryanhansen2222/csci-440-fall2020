@@ -18,7 +18,7 @@ public class Playlist extends Model {
     public Playlist() {
     }
 
-    private Playlist(ResultSet results) throws SQLException {
+    public Playlist(ResultSet results) throws SQLException {
         name = results.getString("Name");
         playlistId = results.getLong("PlaylistId");
     }
@@ -29,9 +29,12 @@ public class Playlist extends Model {
         //return Collections.emptyList();
         try (Connection conn = DB.connect();
              PreparedStatement stmt = conn.prepareStatement(
-                     "SELECT tracks.* FROM playlists join playlist_track on" +
+                     "SELECT tracks.*, artists.Name as ArtistName, albums.Title as AlbumName" +
+                             " FROM playlists join playlist_track on" +
                              " playlists.PlaylistId=playlist_track.PlaylistId join " +
-                             "tracks ON playlist_track.TrackId=tracks.TrackId WHERE" +
+                             "tracks ON playlist_track.TrackId=tracks.TrackId " +
+                             "join albums ON albums.AlbumId=tracks.AlbumId join artists ON " +
+                             "artists.ArtistId=albums.ArtistId WHERE" +
                              " playlists.PlaylistId=? ORDER BY tracks.Name"
              )) {
             stmt.setLong(1, this.getPlaylistId());
