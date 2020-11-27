@@ -78,7 +78,7 @@ public class Track extends Model {
 
     public static Long count() {
         Jedis redisClient = new Jedis(); // use this class to access redis and create a cache
-        Long cached = Long.parseLong(redisClient.get(REDIS_CACHE_KEY));
+        String cached = (redisClient.get(REDIS_CACHE_KEY));
         if(cached == null){
             try (Connection conn = DB.connect();
                  PreparedStatement stmt = conn.prepareStatement("SELECT COUNT(*) as Count FROM tracks")) {
@@ -94,7 +94,7 @@ public class Track extends Model {
                 throw new RuntimeException(sqlException);
             }
         }else{
-            return cached;
+            return Long.parseLong(cached);
         }
 
 
@@ -337,8 +337,13 @@ public class Track extends Model {
                 stmt.setBigDecimal(7, this.getUnitPrice());
 
 
+
                 stmt.executeUpdate();
                 this.trackId = DB.getLastID(conn);
+
+                //Delete count cache on create
+                Jedis redisClient = new Jedis();
+                redisClient.del(REDIS_CACHE_KEY);
                 return true;
             } catch (SQLException sqlException) {
                 throw new RuntimeException(sqlException);
