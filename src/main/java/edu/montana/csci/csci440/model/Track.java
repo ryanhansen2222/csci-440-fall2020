@@ -220,14 +220,16 @@ public class Track extends Model {
                                              Integer maxRuntime, Integer minRuntime) {
         LinkedList<Object> args = new LinkedList<>();
 
-        String query = "SELECT * FROM tracks " +
-                "JOIN albums ON tracks.AlbumId = albums.AlbumId " +
-                "WHERE name LIKE ?";
+        String query = "SELECT tracks.*, artists.Name as ArtistName, " +
+        "albums.Title as AlbumName FROM tracks " +
+                "join albums ON albums.AlbumId=tracks.AlbumId " +
+                "join artists ON artists.ArtistId=albums.ArtistId " +
+                "WHERE tracks.name LIKE ?";
         args.add("%" + search + "%");
 
         // Conditionally include the query and argument
         if (artistId != null) {
-            query += " AND ArtistId=? ";
+            query += " AND artists.ArtistId=? ";
             args.add(artistId);
         }
 
@@ -252,7 +254,10 @@ public class Track extends Model {
     }
 
     public static List<Track> search(int page, int count, String orderBy, String search) {
-        String query = "SELECT * FROM tracks WHERE name LIKE ? LIMIT ?";
+        String query = "SELECT tracks.*, artists.Name as ArtistName, " +
+                "albums.Title as AlbumName FROM tracks " +
+                "join albums ON albums.AlbumId=tracks.AlbumId " +
+                "join artists ON artists.ArtistId=albums.ArtistId  WHERE tracks.name LIKE ? LIMIT ?";
         search = "%" + search + "%";
         try (Connection conn = DB.connect();
              PreparedStatement stmt = conn.prepareStatement(query)) {
@@ -270,7 +275,11 @@ public class Track extends Model {
     }
 
     public static List<Track> forAlbum(Long albumId) {
-        String query = "SELECT * FROM tracks WHERE AlbumId=?";
+        String query = "SELECT tracks.*, artists.Name as ArtistName, " +
+                "albums.Title as AlbumName FROM tracks " +
+                "join albums ON albums.AlbumId=tracks.AlbumId " +
+                "join artists ON artists.ArtistId=albums.ArtistId " +
+                "WHERE tracks.AlbumId=?";
         try (Connection conn = DB.connect();
              PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setLong(1, albumId);
@@ -335,7 +344,7 @@ public class Track extends Model {
                 stmt.setLong(5, this.getMilliseconds());
                 stmt.setLong(6, this.getBytes());
                 stmt.setBigDecimal(7, this.getUnitPrice());
-                
+
 
                 stmt.executeUpdate();
                 this.trackId = DB.getLastID(conn);

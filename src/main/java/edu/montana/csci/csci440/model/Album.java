@@ -16,7 +16,20 @@ public class Album extends Model {
     Long artistId;
     String title;
 
+
     public Album() {
+        artistId = 0L;
+        title = "";
+    }
+
+    public Album(Long x, String name){
+        artistId = x;
+        title = name;
+    }
+
+    public Album(String name, Long x){
+        artistId = x;
+        title = name;
     }
 
     private Album(ResultSet results) throws SQLException {
@@ -105,7 +118,9 @@ public class Album extends Model {
         if (title == null || "".equals(title)) {
             addError("Title can't be null or blank!");
         }
-        if (artistId == null || artistId == 0) {
+
+
+        if (getArtistId() == 0L) {
             addError("Artist can't be null!");
         }
 
@@ -147,6 +162,18 @@ public class Album extends Model {
             }
         } else {
             return false;
+        }
+    }
+
+    @Override
+    public void delete() {
+        try (Connection conn = DB.connect();
+             PreparedStatement stmt = conn.prepareStatement(
+                     "DELETE FROM albums WHERE AlbumId=?")) {
+            stmt.setLong(1, this.getAlbumId());
+            stmt.executeUpdate();
+        } catch (SQLException sqlException) {
+            throw new RuntimeException(sqlException);
         }
     }
 
